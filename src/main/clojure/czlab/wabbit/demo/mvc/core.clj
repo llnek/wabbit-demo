@@ -11,13 +11,13 @@
 
   czlab.wabbit.demo.mvc.core
 
-  (:require [czlab.xlib.logging :as log])
+  (:require [czlab.basal.logging :as log])
 
   (:use [czlab.convoy.net.core]
         [czlab.wabbit.etc.core]
-        [czlab.xlib.consts]
-        [czlab.xlib.core]
-        [czlab.xlib.str]
+        [czlab.basal.consts]
+        [czlab.basal.core]
+        [czlab.basal.str]
         [czlab.flux.wflow.core])
 
   (:import [czlab.flux.wflow Job TaskDef WorkStream]

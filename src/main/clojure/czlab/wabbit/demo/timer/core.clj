@@ -11,12 +11,12 @@
 
   czlab.wabbit.demo.timer.core
 
-  (:require [czlab.xlib.process :refer [delayExec]]
-            [czlab.xlib.logging :as log])
+  (:require [czlab.basal.process :refer [delayExec]]
+            [czlab.basal.logging :as log])
 
   (:use [czlab.flux.wflow.core]
-        [czlab.xlib.core]
-        [czlab.xlib.str])
+        [czlab.basal.core]
+        [czlab.basal.str])
 
   (:import [java.util.concurrent.atomic AtomicInteger]
            [czlab.flux.wflow Job TaskDef]

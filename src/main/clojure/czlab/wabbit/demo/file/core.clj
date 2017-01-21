@@ -11,12 +11,12 @@
 
   czlab.wabbit.demo.file.core
 
-  (:require [czlab.xlib.logging :as log]
+  (:require [czlab.basal.logging :as log]
             [clojure.java.io :as io])
 
-  (:use [czlab.xlib.core]
-        [czlab.xlib.str]
-        [czlab.xlib.io]
+  (:use [czlab.basal.core]
+        [czlab.basal.str]
+        [czlab.basal.io]
         [czlab.flux.wflow.core])
 
   (:import [czlab.wabbit.server Container ServiceProvider Service]

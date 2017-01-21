@@ -11,19 +11,19 @@
 
   czlab.wabbit.demo.tcpip.core
 
-  (:require [czlab.xlib.process :refer [delayExec]]
-            [czlab.xlib.logging :as log])
+  (:require [czlab.basal.process :refer [delayExec]]
+            [czlab.basal.logging :as log])
 
   (:use [czlab.flux.wflow.core]
-        [czlab.xlib.core]
-        [czlab.xlib.str])
+        [czlab.basal.core]
+        [czlab.basal.str])
 
   (:import [java.io DataOutputStream DataInputStream BufferedInputStream]
            [czlab.flux.wflow Job TaskDef WorkStream]
            [czlab.wabbit.io SocketEvent]
            [java.net Socket]
            [java.util Date]
-           [czlab.xlib Muble]
+           [czlab.jasal Muble]
            [czlab.wabbit.server Container ServiceProvider Service]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

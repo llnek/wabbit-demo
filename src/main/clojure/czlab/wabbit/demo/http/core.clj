@@ -11,13 +11,13 @@
 
   czlab.wabbit.demo.http.core
 
-  (:require [czlab.xlib.process :refer [delayExec]]
-            [czlab.xlib.logging :as log])
+  (:require [czlab.basal.process :refer [delayExec]]
+            [czlab.basal.logging :as log])
 
   (:use [czlab.flux.wflow.core]
         [czlab.convoy.net.core]
-        [czlab.xlib.core]
-        [czlab.xlib.str])
+        [czlab.basal.core]
+        [czlab.basal.str])
 
   (:import [czlab.convoy.net HttpResult]
            [czlab.flux.wflow Job TaskDef]

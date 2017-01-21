@@ -11,12 +11,12 @@
 
   czlab.wabbit.demo.pop3.core
 
-  (:require [czlab.xlib.logging :as log]
-            [czlab.xlib.process :refer [delayExec]])
+  (:require [czlab.basal.logging :as log]
+            [czlab.basal.process :refer [delayExec]])
 
   (:use [czlab.flux.wflow.core]
-        [czlab.xlib.core]
-        [czlab.xlib.str])
+        [czlab.basal.core]
+        [czlab.basal.str])
 
   (:import [javax.mail Message Message$RecipientType Multipart]
            [java.util.concurrent.atomic AtomicInteger]

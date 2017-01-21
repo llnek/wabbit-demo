@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defproject io.czlab/wabbit-demo "0.1.0"
+(defproject io.czlab/wabbit-demo "1.0.0"
 
   :license {:url "http://www.eclipse.org/legal/epl-v10.html"
             :name "Eclipse Public License"}
@@ -8,15 +8,15 @@
   :description ""
   :url "https://github.com/llnek/wabbit-demo"
 
-  :dependencies [[io.czlab/wabbit "0.1.0"]]
+  :dependencies [[io.czlab/wabbit "1.0.0"]]
 
   :plugins [[lein-codox "0.10.2"]
             [lein-pprint "1.1.2"]]
 
   :profiles {:provided {:dependencies
-                        [[net.mikera/cljunit "0.6.0" :scope "test"]
+                        [[org.clojure/clojure "1.8.0" :scope "provided"]
+                         [net.mikera/cljunit "0.6.0" :scope "test"]
                          [junit/junit "4.12" :scope "test"]
-                         [org.clojure/clojure "1.8.0" :scope "provided"]
                          [codox/codox "0.10.2" :scope "provided"]]}
              :uberjar {:aot :all}}
 

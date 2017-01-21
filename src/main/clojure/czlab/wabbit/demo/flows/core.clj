@@ -12,8 +12,8 @@
   czlab.wabbit.demo.flows.core
 
   (:use [czlab.flux.wflow.core]
-        [czlab.xlib.core]
-        [czlab.xlib.str])
+        [czlab.basal.core]
+        [czlab.basal.str])
 
   (:import [czlab.flux.wflow
             ChoiceExpr

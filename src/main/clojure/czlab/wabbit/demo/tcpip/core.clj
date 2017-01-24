@@ -20,11 +20,12 @@
 
   (:import [java.io DataOutputStream DataInputStream BufferedInputStream]
            [czlab.flux.wflow Job TaskDef WorkStream]
-           [czlab.wabbit.io SocketEvent]
+           [czlab.wabbit.plugs.io SocketMsg]
            [java.net Socket]
            [java.util Date]
            [czlab.jasal Muble]
-           [czlab.wabbit.server Container ServiceProvider Service]))
+           [czlab.wabbit.ctl Pluglet]
+           [czlab.wabbit.sys Execvisor]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -44,10 +45,11 @@
     (postpone<> 3)
     (script<>
       #(let
-         [^Job job %2
-          tcp (-> ^Container
-                  (.server job)
-                  (.service :default-sample))
+         [^SocketMsg msg (.origin ^Job %2)
+          ^Pluglet
+          tcp (-> ^Execvisor
+                  (.. msg source server)
+                  (.child :default-sample))
           s (.replace text-msg "${TS}" (str (Date.)))
           ^String host (.getv (.getx tcp) :host)
           bits (.getBytes s "utf-8")
@@ -71,7 +73,7 @@
     (script<>
       #(let
          [^Job job %2
-          ^SocketEvent ev (.event job)
+          ^SocketMsg ev (.origin job)
           dis (DataInputStream. (.sockIn ev))
           clen (.readInt dis)
           bf (BufferedInputStream. (.sockIn ev))

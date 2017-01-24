@@ -19,10 +19,11 @@
         [czlab.basal.io]
         [czlab.flux.wflow.core])
 
-  (:import [czlab.wabbit.server Container ServiceProvider Service]
-           [java.util.concurrent.atomic AtomicInteger]
-           [czlab.flux.wflow Job TaskDef]
-           [czlab.wabbit.io FileEvent]
+  (:import [java.util.concurrent.atomic AtomicInteger]
+           [czlab.wabbit.ctl Pluglet PlugMsg]
+           [czlab.wabbit.sys Execvisor]
+           [czlab.flux.wflow Job]
+           [czlab.wabbit.plugs.io FileMsg]
            [java.util Date]
            [java.io File IOException]))
 
@@ -41,28 +42,25 @@
 ;;
 (defn demoGen
   ""
-  ^TaskDef
   []
-  (script<>
-    #(let [p (-> ^Container
-                 (.server ^Job %2)
-                 (.service :default-sample))]
-       (-> (.getv (.getx p) :targetFolder)
-           (io/file (str "ts-" (ncount) ".txt"))
-           (spitUtf8 (str "Current time is " (Date.)))))))
+  #(let [^FileMsg msg (.origin ^Job %)
+         ^Pluglet
+         p (-> ^Execvisor
+               (.. msg source server)
+               (.child :default-sample))]
+     (-> (.getv (.getx p) :targetFolder)
+         (io/file (str "ts-" (ncount) ".txt"))
+         (spitUtf8 (str "Current time is " (Date.))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demoPick
   ""
-  ^TaskDef
   []
-  (script<>
-    #(let [f (-> ^FileEvent
-                 (.event ^Job %2)
-                 (.file))]
-       (println "picked up new file: " f)
-       (println "content: " (slurpUtf8 f)))))
+  #(let [^FileMsg msg (.origin ^Job %)
+         f (.file msg)]
+     (println "picked up new file: " f)
+     (println "content: " (slurpUtf8 f))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

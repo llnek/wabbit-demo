@@ -21,8 +21,8 @@
 
   (:import [czlab.convoy.net HttpResult]
            [czlab.flux.wflow Job TaskDef]
-           [czlab.wabbit.io HttpEvent]
-           [czlab.wabbit.server Container]))
+           [czlab.wabbit.plugs.io HttpMsg]
+           [czlab.wabbit.sys Execvisor]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -43,20 +43,18 @@
 ;;
 (defn demo
   ""
-  ^TaskDef
   []
-  (script<>
-    #(let
-       [^HttpEvent ev (.event ^Job %2)
-        res (httpResult<> (.socket ev) (.msgGist ev))]
-       ;; construct a simple html page back to caller
-       ;; by wrapping it into a stream data object
-       (doto res
-         (.setContentType "text/xml")
-         (.setContent fx-str))
-       ;; associate this result with the orignal event
-       ;; this will trigger the http response
-       (replyResult (.socket ev) res))))
+  #(let
+     [^HttpMsg ev (.origin ^Job %)
+      res (httpResult<> (.socket ev) (.msgGist ev))]
+     ;; construct a simple html page back to caller
+     ;; by wrapping it into a stream data object
+     (doto res
+       (.setContentType "text/xml")
+       (.setContent fx-str))
+     ;; associate this result with the orignal event
+     ;; this will trigger the http response
+     (replyResult (.socket ev) res)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

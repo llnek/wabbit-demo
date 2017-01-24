@@ -17,7 +17,7 @@
         [czlab.basal.core]
         [czlab.basal.str])
 
-  (:import [czlab.wabbit.server Container]
+  (:import [czlab.wabbit.sys Execvisor]
            [czlab.flux.wflow Job TaskDef WorkStream]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

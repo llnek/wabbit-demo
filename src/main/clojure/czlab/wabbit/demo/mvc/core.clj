@@ -13,17 +13,18 @@
 
   (:require [czlab.basal.logging :as log])
 
-  (:use [czlab.convoy.net.core]
-        [czlab.wabbit.etc.core]
+  (:use [czlab.wabbit.plugs.io.http]
+        [czlab.wabbit.base.core]
+        [czlab.convoy.net.core]
         [czlab.basal.consts]
         [czlab.basal.core]
         [czlab.basal.str]
         [czlab.flux.wflow.core])
 
   (:import [czlab.flux.wflow Job TaskDef WorkStream]
+           [czlab.wabbit.plugs.io HttpMsg]
            [czlab.convoy.net HttpResult]
-           [czlab.wabbit.io HttpEvent]
-           [czlab.wabbit.server Container]))
+           [czlab.wabbit.sys Execvisor]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -53,12 +54,12 @@
       #(let
          [^Job job %2
           tpl (:template (.getv job evt-opts))
-          ^HttpEvent evt (.event job)
+          ^HttpMsg evt (.origin job)
           co (.. evt source server)
           {:keys [data ctype]}
-          (.loadTemplate co
-                         tpl
-                         (ftlContext))
+          (loadTemplate (.config co)
+                        tpl
+                        (ftlContext))
           res (httpResult<> (.socket evt)(.msgGist evt))]
          (.setContentType res  ctype)
          (.setContent res data)

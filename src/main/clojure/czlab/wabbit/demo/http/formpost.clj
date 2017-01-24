@@ -22,10 +22,10 @@
 
   (:import [czlab.convoy.net HttpResult ULFileItem ULFormItems]
            [czlab.flux.wflow Job TaskDef]
-           [czlab.wabbit.io HttpEvent]
+           [czlab.wabbit.plugs.io HttpMsg]
            [java.util ListIterator]
            [czlab.jasal XData]
-           [czlab.wabbit.server Container]))
+           [czlab.wabbit.sys Execvisor]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -34,32 +34,30 @@
 ;;
 (defn demo
   ""
-  ^TaskDef
   []
-  (script<>
-    #(let
-       [^HttpEvent ev (.event ^Job %2)
-        res (httpResult<> (.socket ev)(.msgGist ev))
-        data (.body ev)
-        stuff (when (and (some? data)
-                         (.hasContent data))
-                (.content data))]
-       (if-some [^ULFormItems
-                 fis (cast? ULFormItems stuff)]
-         (doseq [^ULFileItem fi (.intern fis)]
-           (println "Fieldname : " (.getFieldName fi))
-           (println "Name : " (.getName fi))
-           (println "Formfield : " (.isFormField fi))
-           (if (.isFormField fi)
-             (println "Field value: " (.getString fi))
-             (if-some [xs (.getFile fi)]
-               (println "Field file = "
-                        (.getCanonicalPath xs)))))
-         ;;else
-         (println "Error: data is not ULFormItems."))
-       ;; associate this result with the orignal event
-       ;; this will trigger the http response
-       (replyResult (.socket ev) res))))
+  #(let
+     [^HttpMsg ev (.origin ^Job %)
+      res (httpResult<> (.socket ev)(.msgGist ev))
+      data (.body ev)
+      stuff (when (and (some? data)
+                       (.hasContent data))
+              (.content data))]
+     (if-some [^ULFormItems
+               fis (cast? ULFormItems stuff)]
+       (doseq [^ULFileItem fi (.intern fis)]
+         (println "Fieldname : " (.getFieldName fi))
+         (println "Name : " (.getName fi))
+         (println "Formfield : " (.isFormField fi))
+         (if (.isFormField fi)
+           (println "Field value: " (.getString fi))
+           (if-some [xs (.getFile fi)]
+             (println "Field file = "
+                      (.getCanonicalPath xs)))))
+       ;;else
+       (println "Error: data is not ULFormItems."))
+     ;; associate this result with the orignal event
+     ;; this will trigger the http response
+     (replyResult (.socket ev) res)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

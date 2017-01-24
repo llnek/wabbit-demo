@@ -8,7 +8,9 @@
   :description ""
   :url "https://github.com/llnek/wabbit-demo"
 
-  :dependencies [[io.czlab/wabbit "1.0.0"]]
+  :dependencies [[io.czlab/wabbit-plugs "1.0.0"]
+                 [io.czlab/flux "1.0.0"]
+                 [io.czlab/wabbit "1.0.0"]]
 
   :plugins [[lein-codox "0.10.2"]
             [lein-pprint "1.1.2"]]

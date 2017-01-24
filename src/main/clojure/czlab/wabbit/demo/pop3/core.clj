@@ -23,8 +23,8 @@
            [javax.mail.internet MimeMessage]
            [czlab.flux.wflow Job TaskDef]
            [org.apache.commons.io IOUtils]
-           [czlab.wabbit.server Container]
-           [czlab.wabbit.io EmailEvent]))
+           [czlab.wabbit.sys Execvisor]
+           [czlab.wabbit.plugs.io MailMsg]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -41,21 +41,19 @@
 ;;
 (defn demo
   ""
-  ^TaskDef
   []
-  (script<>
-    #(let [^EmailEvent ev (.event ^Job %2)
-           ^MimeMessage msg (.message ev)
-           ^Multipart p (.getContent msg)]
-       (println "######################## (" (ncount) ")" )
-       (print "Subj:" (.getSubject msg) "\r\n")
-       (print "Fr:" (first (.getFrom msg)) "\r\n")
-       (print "To:" (first (.getRecipients msg
-                                           Message$RecipientType/TO)))
-       (print "\r\n")
-       (println (IOUtils/toString (-> (.getBodyPart p 0)
-                                       (.getInputStream))
-                                   "utf-8")))))
+  #(let [^MailMsg ev (.origin ^Job %)
+         ^MimeMessage msg (.message ev)
+         ^Multipart p (.getContent msg)]
+     (println "######################## (" (ncount) ")" )
+     (print "Subj:" (.getSubject msg) "\r\n")
+     (print "Fr:" (first (.getFrom msg)) "\r\n")
+     (print "To:" (first (.getRecipients msg
+                                         Message$RecipientType/TO)))
+     (print "\r\n")
+     (println (IOUtils/toString (-> (.getBodyPart p 0)
+                                     (.getInputStream))
+                                 "utf-8"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

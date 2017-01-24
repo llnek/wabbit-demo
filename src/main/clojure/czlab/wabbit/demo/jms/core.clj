@@ -20,9 +20,9 @@
 
   (:import [java.util.concurrent.atomic AtomicInteger]
            [czlab.flux.wflow Job TaskDef]
-           [czlab.wabbit.io JmsEvent]
+           [czlab.wabbit.plugs.io JmsMsg]
            [javax.jms TextMessage]
-           [czlab.wabbit.server Container]))
+           [czlab.wabbit.sys Execvisor]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -39,16 +39,14 @@
 ;;
 (defn demo
   ""
-  ^TaskDef
   []
-  (script<>
-    #(let [^JmsEvent ev (.event ^Job %2)
-           ^TextMessage msg (.message ev)]
-       (println "-> Correlation ID= " (.getJMSCorrelationID msg))
-       (println "-> Msg ID= " (.getJMSMessageID msg))
-       (println "-> Type= " (.getJMSType msg))
-       (println "("
-                (ncount) ") -> Message= " (.getText msg)))))
+  #(let [^JmsMsg ev (.origin ^Job %)
+         ^TextMessage msg (.message ev)]
+     (println "-> Correlation ID= " (.getJMSCorrelationID msg))
+     (println "-> Msg ID= " (.getJMSMessageID msg))
+     (println "-> Type= " (.getJMSType msg))
+     (println "("
+              (ncount) ") -> Message= " (.getText msg))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

@@ -20,9 +20,9 @@
         [czlab.basal.str])
 
   (:import [czlab.flux.wflow Job TaskDef]
-           [czlab.wabbit.io WSockEvent]
+           [czlab.wabbit.plugs.io WSockMsg]
            [czlab.jasal XData]
-           [czlab.wabbit.server Container]))
+           [czlab.wabbit.sys Execvisor]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -31,24 +31,22 @@
 ;;
 (defn demo
   ""
-  ^TaskDef
   []
-  (script<>
-    #(let
-       [^WSockEvent ev (.event ^Job %2)
-        data (.body ev)
-        stuff (when (and (some? data)
-                         (.hasContent data))
-                (.content data))]
-       (cond
-         (instance? String stuff)
-         (println "Got poked by websocket-text: " stuff)
+  #(let
+     [^WSockMsg ev (.origin ^Job %)
+      data (.body ev)
+      stuff (when (and (some? data)
+                       (.hasContent data))
+              (.content data))]
+     (cond
+       (instance? String stuff)
+       (println "Got poked by websocket-text: " stuff)
 
-         (instBytes? stuff)
-         (println "Got poked by websocket-bin: len = " (alength ^bytes stuff))
+       (instBytes? stuff)
+       (println "Got poked by websocket-bin: len = " (alength ^bytes stuff))
 
-         :else
-         (println "Funky data from websocket????")))))
+       :else
+       (println "Funky data from websocket????"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

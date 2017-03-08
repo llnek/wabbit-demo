@@ -40,23 +40,19 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demoGen
-  ""
-  []
+(defn demoGen "" []
   #(let [^FileMsg msg (.origin ^Job %)
          ^Pluglet
          p (-> ^Execvisor
                (.. msg source server)
                (.child :default-sample))]
-     (-> (.getv (.getx p) :targetFolder)
+     (-> (:targetFolder (.config p))
          (io/file (str "ts-" (ncount) ".txt"))
          (spitUtf8 (str "Current time is " (Date.))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demoPick
-  ""
-  []
+(defn demoPick "" []
   #(let [^FileMsg msg (.origin ^Job %)
          f (.file msg)]
      (println "picked up new file: " f)

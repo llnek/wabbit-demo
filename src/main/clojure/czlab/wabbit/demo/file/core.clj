@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns ^{:no-doc true
+(ns ^{:doc ""
       :author "Kenneth Leung"}
 
   czlab.wabbit.demo.file.core

@@ -18,20 +18,15 @@
         [czlab.basal.str])
 
   (:import [czlab.wabbit.sys Execvisor]
-           [czlab.flux.wflow Job TaskDef WorkStream]))
+           [czlab.flux.wflow Job Activity Workstream]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn- fib
-  ""
-  [n]
-  (if (< n 3)
-    1
-    (+ (fib (- n 2))
-       (fib (- n 1)))))
+(defn- fib "" [n]
+  (if (< n 3) 1 (+ (fib (- n 2)) (fib (- n 1)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -45,74 +40,59 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(def
-  ^:private
-  ^TaskDef
-  a1
-  (script<>
-    #(let [x %2]
+(def ^:private a1
+  #(do->nil
+     (let [job %]
        (println "I am the *Parent*")
        (println "I am programmed to fork off a parallel child process, "
                 "and continue my business."))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(def
-  ^:private
-  ^TaskDef
-  a2
+(def ^:private a2
   (group<>
-    (script<>
-      #(let [^Job job %2]
+    #(do->nil
+       (let [^Job job %]
          (println "*Child*: will create my own child (blocking)")
          (.setv job :rhs 60)
          (.setv job :lhs 5)))
     (fork<>
-      {:join :and}
-      (script<>
-        #(let [^Job job %2]
+      :and
+      #(do->nil
+         (let [^Job job %]
            (println "*Child->child*: taking some time to do "
                     "this task... ( ~ 6secs)")
            (dotimes [n 7]
-             (Thread/sleep 1000)
-             (print "."))
+             (Thread/sleep 1000) (print "."))
            (println "")
            (println "*Child->child*: returning result back to *Child*.")
            (.setv job :result (* (.getv job :rhs)
                                  (.getv job :lhs)))
-           (println "*Child->child*: done.")
-           nil)))
-    (script<>
-      #(do
+           (println "*Child->child*: done."))))
+    #(do->nil
+       (let [^Job job %]
          (println "*Child*: the result for (5 * 60) according to "
                   "my own child is = "
-                  (.getv ^Job %2 :result))
+                  (.getv job :result))
          (println "*Child*: done.")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(def
-  ^:private
-  ^TaskDef
-  a3
-  (script<>
-    #(let [x %2
+(def ^:private a3
+  #(do->nil
+     (let [_ %
            b (strbf<> "*Parent*: ")]
        (println "*Parent*: after fork, continue to calculate fib(6)...")
        (dotimes [n 7]
          (when (> n 0)
            (.append b (str (fib n) " "))))
-       (println (str b) "\n" "*Parent*: done.")
-       nil)))
+       (println (str b) "\n" "*Parent*: done."))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demo
-  "Split but no wait, parent continues"
-  ^WorkStream
-  []
-  (workStream<>
-    (group<> a1 (fork<> {} a2) a3)))
+  "Split but no wait, parent continues" []
+  (workstream<> (group<> a1 (fork<> :nil a2) a3)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

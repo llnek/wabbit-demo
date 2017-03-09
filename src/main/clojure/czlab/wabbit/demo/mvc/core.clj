@@ -14,29 +14,25 @@
   (:require [czlab.basal.logging :as log])
 
   (:use [czlab.wabbit.plugs.io.http]
+        [czlab.wabbit.plugs.io.mvc]
         [czlab.wabbit.base.core]
         [czlab.convoy.net.core]
-        [czlab.basal.consts]
         [czlab.basal.core]
         [czlab.basal.str]
         [czlab.flux.wflow.core])
 
-  (:import [czlab.flux.wflow Job TaskDef WorkStream]
+  (:import [czlab.flux.wflow Job Activity Workstream]
+           [czlab.convoy.net HttpResult RouteInfo]
            [czlab.wabbit.plugs.io HttpMsg]
-           [czlab.convoy.net HttpResult]
            [czlab.wabbit.sys Execvisor]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn- ftlContext
-  ""
-  []
-  {:landing
-             {:title_line "Sample Web App"
-              :title_2 "Demo Skaro"
-              :tagline "Say something" }
-   :about
-             {:title "About Skaro demo" }
+(defn- ftlContext "" []
+  {:landing {:title_line "Sample Web App"
+             :title_2 "Demo Skaro"
+             :tagline "Say something" }
+   :about {:title "About Skaro demo" }
    :services {}
    :contact {:email "a@b.com"}
    :description "Default Skaro web app."
@@ -45,35 +41,28 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn handler
-  ""
-  ^WorkStream
-  []
-  (workStream<>
-    (script<>
-      #(let
-         [^Job job %2
-          tpl (:template (.getv job evt-opts))
-          ^HttpMsg evt (.origin job)
-          co (.. evt source server)
-          {:keys [data ctype]}
-          (loadTemplate (.config co)
-                        tpl
-                        (ftlContext))
-          res (httpResult<> (.socket evt)(.msgGist evt))]
-         (.setContentType res  ctype)
+(defn handler "" []
+  (workstream<>
+    #(do->nil
+       (let [^HttpMsg evt (.origin ^Job %)
+             ri (get-in (.gist evt)
+                        [:route :info])
+             tpl (some-> ^RouteInfo ri
+                         .template)
+             co (.. evt source)
+             {:keys [data ctype]}
+             (loadTemplate co tpl (ftlContext))
+             res (httpResult<> evt)]
+         (.setContentType res ctype)
          (.setContent res data)
-         (replyResult (.socket evt) res)))
+         (replyResult res)))
     :catch
     (fn [_]
       (log/info "Oops, I got an error!"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn myAppMain
-  ""
-  []
-  (log/info "My AppMain called!"))
+(defn myAppMain "" [] (log/info "My AppMain called!"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

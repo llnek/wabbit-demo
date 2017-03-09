@@ -21,7 +21,7 @@
   (:import [javax.mail Message Message$RecipientType Multipart]
            [java.util.concurrent.atomic AtomicInteger]
            [javax.mail.internet MimeMessage]
-           [czlab.flux.wflow Job TaskDef]
+           [czlab.flux.wflow Job Activity]
            [org.apache.commons.io IOUtils]
            [czlab.wabbit.sys Execvisor]
            [czlab.wabbit.plugs.io MailMsg]))
@@ -39,27 +39,23 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demo
-  ""
-  []
-  #(let [^MailMsg ev (.origin ^Job %)
-         ^MimeMessage msg (.message ev)
-         ^Multipart p (.getContent msg)]
-     (println "######################## (" (ncount) ")" )
-     (print "Subj:" (.getSubject msg) "\r\n")
-     (print "Fr:" (first (.getFrom msg)) "\r\n")
-     (print "To:" (first (.getRecipients msg
-                                         Message$RecipientType/TO)))
-     (print "\r\n")
-     (println (IOUtils/toString (-> (.getBodyPart p 0)
-                                     (.getInputStream))
-                                 "utf-8"))))
+(defn demo "" []
+  #(do->nil
+     (let [^MailMsg ev (.origin ^Job %)
+           ^MimeMessage msg (.message ev)
+           ^Multipart p (.getContent msg)]
+       (println "######################## (" (ncount) ")" )
+       (print "Subj:" (.getSubject msg) "\r\n")
+       (print "Fr:" (first (.getFrom msg)) "\r\n")
+       (print "To:" (first (.getRecipients msg
+                                           Message$RecipientType/TO)))
+       (print "\r\n")
+       (println (IOUtils/toString (-> (.getBodyPart p 0)
+                                      (.getInputStream)) "utf-8")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn myAppMain
-  ""
-  []
+(defn myAppMain "" []
   (System/setProperty "wabbit.mock.mail.proto" "pop3s"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

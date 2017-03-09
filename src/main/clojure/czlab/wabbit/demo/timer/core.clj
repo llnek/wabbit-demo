@@ -19,7 +19,7 @@
         [czlab.basal.str])
 
   (:import [java.util.concurrent.atomic AtomicInteger]
-           [czlab.flux.wflow Job TaskDef]
+           [czlab.flux.wflow Job Activity]
            [java.util Date]
            [czlab.wabbit.plugs.io TimerMsg]
            [czlab.wabbit.sys Execvisor]))
@@ -37,14 +37,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demo
-  ""
-  []
-  #(let
-     [^TimerMsg ev (.origin ^Job %)]
-     (if (.isRepeating ev)
-       (println "-----> (" (ncount) ") repeating-update: " (Date.))
-       (println "-----> once-only!!: " (Date.)))))
+(defn demo "" []
+  #(do->nil
+     (let [^TimerMsg ev (.origin ^Job %)]
+       (if (.isRepeating ev)
+         (println "-----> (" (ncount) ") repeating-update: " (Date.))
+         (println "-----> once-only!!: " (Date.))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

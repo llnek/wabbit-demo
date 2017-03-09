@@ -23,7 +23,7 @@
            [czlab.wabbit.ctl Pluglet PlugMsg]
            [czlab.wabbit.sys Execvisor]
            [czlab.flux.wflow Job]
-           [czlab.wabbit.plugs.io FileMsg]
+           [czlab.wabbit.plugs.io TimerMsg FileMsg]
            [java.util Date]
            [java.io File IOException]))
 
@@ -41,7 +41,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demoGen "" []
-  #(let [^FileMsg msg (.origin ^Job %)
+  #(let [^TimerMsg msg (.origin ^Job %)
          ^Pluglet
          p (-> ^Execvisor
                (.. msg source server)

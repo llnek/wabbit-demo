@@ -20,7 +20,7 @@
         [czlab.basal.str])
 
   (:import [czlab.convoy.net HttpResult]
-           [czlab.flux.wflow Job TaskDef]
+           [czlab.flux.wflow Job Activity]
            [czlab.wabbit.plugs.io HttpMsg]
            [czlab.wabbit.sys Execvisor]))
 
@@ -29,9 +29,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(def
-  ^:private
-  fx-str
+(def ^:private fx-str
   (str "<?xml version = \"1.0\" encoding = \"utf-8\"?>"
        "<hello xmlns=\"http://simple/\">"
        "<world>"
@@ -41,20 +39,18 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demo
-  ""
-  []
-  #(let
-     [^HttpMsg ev (.origin ^Job %)
-      res (httpResult<> (.socket ev) (.msgGist ev))]
-     ;; construct a simple html page back to caller
-     ;; by wrapping it into a stream data object
-     (doto res
-       (.setContentType "text/xml")
-       (.setContent fx-str))
-     ;; associate this result with the orignal event
-     ;; this will trigger the http response
-     (replyResult (.socket ev) res)))
+(defn demo "" []
+  #(do->nil
+     (let [^HttpMsg ev (.origin ^Job %)
+           res (httpResult<> ev)]
+       ;; construct a simple html page back to caller
+       ;; by wrapping it into a stream data object
+       (doto res
+         (.setContentType "text/xml")
+         (.setContent fx-str))
+       ;; associate this result with the orignal event
+       ;; this will trigger the http response
+       (replyResult res))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

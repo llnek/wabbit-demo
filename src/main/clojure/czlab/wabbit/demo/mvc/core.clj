@@ -13,18 +13,12 @@
 
   (:require [czlab.basal.logging :as log])
 
-  (:use [czlab.wabbit.plugs.io.http]
-        [czlab.wabbit.plugs.io.mvc]
-        [czlab.wabbit.base.core]
-        [czlab.convoy.net.core]
+  (:use [czlab.wabbit.plugs.mvc]
+        [czlab.wabbit.xpis]
+        [czlab.wabbit.base]
+        [czlab.convoy.core]
         [czlab.basal.core]
-        [czlab.basal.str]
-        [czlab.flux.wflow.core])
-
-  (:import [czlab.flux.wflow Job Activity Workstream]
-           [czlab.convoy.net HttpResult RouteInfo]
-           [czlab.wabbit.plugs.io HttpMsg]
-           [czlab.wabbit.sys Execvisor]))
+        [czlab.basal.str]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -41,28 +35,22 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn handler "" []
-  (workstream<>
-    #(do->nil
-       (let [^HttpMsg evt (.origin ^Job %)
-             ri (get-in (.gist evt)
-                        [:route :info])
-             tpl (some-> ^RouteInfo ri
-                         .template)
-             co (.. evt source)
-             {:keys [data ctype]}
-             (loadTemplate co tpl (ftlContext))
-             res (httpResult<> evt)]
-         (.setContentType res ctype)
-         (.setContent res data)
-         (replyResult res)))
-    :catch
-    (fn [_]
-      (log/info "Oops, I got an error!"))))
+(defn handler "" [evt res]
+  (do-with
+    [ch (:socket evt)]
+    (let [ri (get-in evt [:route :info])
+          tpl (:template ri)
+          plug (get-pluglet evt)
+          co (get-server plug)
+          {:keys [data ctype]}
+          (loadTemplate co tpl (ftlContext))]
+      (->> (-> (set-res-header ch res "content-type" ctype)
+               (assoc :body data))
+           (reply-result ch )))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn myAppMain "" [] (log/info "My AppMain called!"))
+(defn myAppMain "" [_] (log/info "My AppMain called!"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

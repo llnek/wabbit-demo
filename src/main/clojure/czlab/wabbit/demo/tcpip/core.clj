@@ -11,21 +11,15 @@
 
   czlab.wabbit.demo.tcpip.core
 
-  (:require [czlab.basal.process :refer [delayExec]]
-            [czlab.basal.logging :as log])
+  (:require [czlab.basal.logging :as log])
 
-  (:use [czlab.flux.wflow.core]
+  (:use [czlab.wabbit.xpis]
         [czlab.basal.core]
         [czlab.basal.str])
 
   (:import [java.io DataOutputStream DataInputStream BufferedInputStream]
-           [czlab.flux.wflow Job Activity Workstream]
-           [czlab.wabbit.plugs.io TcpMsg]
            [java.net Socket]
-           [java.util Date]
-           [czlab.jasal Muble]
-           [czlab.wabbit.ctl Pluglet]
-           [czlab.wabbit.sys Execvisor]))
+           [java.util Date]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -36,46 +30,33 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demoClient "" []
-  ;; wait, then opens a socket and write something to server process.
-  (workstream<>
-    (postpone<> 3)
-    #(do->nil
-       (let [^TcpMsg msg (.origin ^Job %)
-             ^Pluglet
-             tcp (-> ^Execvisor
-                     (.. msg source server)
-                     (.child :default-sample))
-             s (.replace text-msg "${TS}" (str (Date.)))
-             {:keys [host port]}
-             (.config tcp)
-             bits (.getBytes s "utf-8")]
-         (println "TCP Client: about to send message" s)
-         (with-open [soc (Socket. ^String host (int port))]
-           (let [os (.getOutputStream soc)]
-             (-> (DataOutputStream. os)
-                 (.writeInt (int (alength bits))))
-             (doto os
-               (.write bits)
-               (.flush))))))))
+(defn demoClient "" [evt]
+  (let [plug (get-pluglet evt)
+        svr (get-server plug)
+        tcp (get-child svr :default-sample)
+        s (.replace text-msg "${TS}" (str (Date.)))
+        {:keys [host port]}
+        (:conf @tcp)
+        bits (.getBytes s "utf-8")]
+    (println "TCP Client: about to send message" s)
+    (with-open [soc (Socket. ^String host (int port))]
+      (let [os (.getOutputStream soc)]
+        (-> (DataOutputStream. os)
+            (.writeInt (int (alength bits))))
+        (doto os
+          (.write bits)
+          (.flush))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demoServer "" []
-  (workstream<>
-    #(do->nil
-       (let [^Job job %
-             ^TcpMsg ev (.origin job)
-             dis (DataInputStream. (.sockIn ev))
-             clen (.readInt dis)
-             bf (BufferedInputStream. (.sockIn ev))
-             buf (byte-array clen)]
-         (.read bf buf)
-         (.setv job :cmsg (String. buf "utf-8"))
-         ;; add a delay into the workflow before next step
-         (postpone<> 1.5)))
-    #(do->nil
-       (println "Socket Server Received: " (.getv ^Job % :cmsg)))))
+(defn demoServer "" [evt]
+  (let [dis (DataInputStream. (:sockin evt))
+        clen (.readInt dis)
+        bf (BufferedInputStream. (:sockin evt))
+        buf (byte-array clen)]
+    (.read bf buf)
+    (->> (String. buf "utf-8")
+         (println "Socket Server Received: "))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

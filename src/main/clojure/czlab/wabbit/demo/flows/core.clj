@@ -11,11 +11,10 @@
 
   czlab.wabbit.demo.flows.core
 
-  (:use [czlab.flux.wflow.core]
+  (:use [czlab.wabbit.xpis]
+        [czlab.flux.wflow]
         [czlab.basal.core]
-        [czlab.basal.str])
-
-  (:import [czlab.flux.wflow Job Activity Workstream]))
+        [czlab.basal.str]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -64,14 +63,14 @@
 ;;so here , we are using a wloop to do that
 (def ^:private provAmi
   (wloop<>
-    #(let [^Job job %
-           v (.getv job :ami_count)
+    #(let [job %
+           v (:ami_count @job)
            c (if (some? v) (inc v) 0)]
-       (.setv job :ami_count c)
+       (alter-atomic job assoc :ami_count c)
        (< c 3))
     #(do->nil
-       (let [^Job job %
-             v (.getv job :ami_count)
+       (let [job %
+             v (:ami_count @job)
              c (if (some? v) v 0)]
          (if (== 2 c)
            (println "step(3): granted permission for user "
@@ -85,14 +84,14 @@
 ;;so here , we are using a wloop to do that
 (def ^:private provVol
   (wloop<>
-    #(let [^Job job %
-           v (.getv job :vol_count)
+    #(let [job %
+           v (:vol_count @job)
            c (if (some? v) (inc v) 0)]
-       (.setv job :vol_count c)
+       (alter-atomic job assoc :vol_count c)
        (< c 3))
     #(do->nil
-       (let [^Job job %
-             v (.getv job :vol_count)
+       (let [job %
+             v (:vol_count @job)
              c (if (some? v) v 0)]
          (if (== c 2)
            (println "step(3'): granted permission for user "
@@ -106,14 +105,14 @@
 ;;so again , we are using a wloop to do that
 (def ^:private saveSdb
   (wloop<>
-    #(let [^Job job %
-           v (.getv job :wdb_count)
+    #(let [job %
+           v (:wdb_count @job)
            c (if (some? v) (inc v) 0)]
-          (.setv job :wdb_count c)
+          (alter-atomic job assoc :wdb_count c)
           (< c 3))
     #(do->nil
-       (let [^Job job %
-             v (.getv job :wdb_count)
+       (let [job %
+             v (:wdb_count @job)
              c (if (some? v) v 0)]
          (if (== c 2)
            (println "step(4): wrote stuff to database successfully")
@@ -151,11 +150,18 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demo "" []
+(defn demo "" [evt]
   ;; this workflow is a small (4 step) workflow, with the 3rd step (Provision) being
   ;; a split, which forks off more steps in parallel.
-  (workstream<>
-    (group<> (authUser) GetProfile Provision FinalTest)))
+  (let [p (get-pluglet evt)
+        s (get-server p)
+        c (get-scheduler s)
+        w (workstream<>
+            (group<> (authUser)
+                     GetProfile
+                     Provision FinalTest))
+        j (job<> c w evt)]
+    (exec-with w j)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

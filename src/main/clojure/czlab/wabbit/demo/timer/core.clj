@@ -11,18 +11,14 @@
 
   czlab.wabbit.demo.timer.core
 
-  (:require [czlab.basal.process :refer [delayExec]]
-            [czlab.basal.logging :as log])
+  (:require [czlab.basal.logging :as log])
 
-  (:use [czlab.flux.wflow.core]
+  (:use [czlab.wabbit.xpis]
         [czlab.basal.core]
         [czlab.basal.str])
 
   (:import [java.util.concurrent.atomic AtomicInteger]
-           [czlab.flux.wflow Job Activity]
-           [java.util Date]
-           [czlab.wabbit.plugs.io TimerMsg]
-           [czlab.wabbit.sys Execvisor]))
+           [java.util Date]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -37,12 +33,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demo "" []
-  #(do->nil
-     (let [^TimerMsg ev (.origin ^Job %)]
-       (if (.isRepeating ev)
-         (println "-----> (" (ncount) ") repeating-update: " (Date.))
-         (println "-----> once-only!!: " (Date.))))))
+(defn demo "" [evt]
+  (let [plug (get-pluglet evt)
+        {:keys [repeat?]}
+        (:conf @plug)]
+    (if repeat?
+      (println "-----> (" (ncount) ") repeating-update: " (Date.))
+      (println "-----> once-only!!: " (Date.)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

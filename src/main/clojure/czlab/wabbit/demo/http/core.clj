@@ -11,18 +11,12 @@
 
   czlab.wabbit.demo.http.core
 
-  (:require [czlab.basal.process :refer [delayExec]]
-            [czlab.basal.logging :as log])
+  (:require [czlab.basal.logging :as log])
 
-  (:use [czlab.flux.wflow.core]
-        [czlab.convoy.net.core]
+  (:use [czlab.wabbit.xpis]
+        [czlab.convoy.core]
         [czlab.basal.core]
-        [czlab.basal.str])
-
-  (:import [czlab.convoy.net HttpResult]
-           [czlab.flux.wflow Job Activity]
-           [czlab.wabbit.plugs.io HttpMsg]
-           [czlab.wabbit.sys Execvisor]))
+        [czlab.basal.str]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -39,18 +33,14 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demo "" []
-  #(do->nil
-     (let [^HttpMsg ev (.origin ^Job %)
-           res (httpResult<> ev)]
-       ;; construct a simple html page back to caller
-       ;; by wrapping it into a stream data object
-       (doto res
-         (.setContentType "text/xml")
-         (.setContent fx-str))
-       ;; associate this result with the orignal event
-       ;; this will trigger the http response
-       (replyResult res))))
+(defn demo "" [evt res]
+  ;; construct a simple html page back to caller
+  ;; by wrapping it into a stream data object
+  (do-with
+    [ch (:socket evt)]
+    (->> (-> (set-res-header ch res "content-type" "text/xml")
+             (assoc :body fx-str))
+         (reply-result ch ))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

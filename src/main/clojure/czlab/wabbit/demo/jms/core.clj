@@ -11,18 +11,14 @@
 
   czlab.wabbit.demo.jms.core
 
-  (:require [czlab.basal.logging :as log]
-            [czlab.basal.process :refer [delayExec]])
+  (:require [czlab.basal.logging :as log])
 
-  (:use [czlab.flux.wflow.core]
+  (:use [czlab.wabbit.xpis]
         [czlab.basal.core]
         [czlab.basal.str])
 
   (:import [java.util.concurrent.atomic AtomicInteger]
-           [czlab.flux.wflow Job Activity]
-           [czlab.wabbit.plugs.io JmsMsg]
-           [javax.jms TextMessage]
-           [czlab.wabbit.sys Execvisor]))
+           [javax.jms TextMessage]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -37,14 +33,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demo "" []
-  #(do->nil
-     (let [^JmsMsg ev (.origin ^Job %)
-           ^TextMessage msg (.message ev)]
-       (println "-> Correlation ID= " (.getJMSCorrelationID msg))
-       (println "-> Msg ID= " (.getJMSMessageID msg))
-       (println "-> Type= " (.getJMSType msg))
-       (println "(" (ncount) ") -> Message= " (.getText msg)))))
+(defn demo "" [evt]
+  (let [^TextMessage msg (:message evt)]
+    (println "-> Correlation ID= " (.getJMSCorrelationID msg))
+    (println "-> Msg ID= " (.getJMSMessageID msg))
+    (println "-> Type= " (.getJMSType msg))
+    (println "(" (ncount) ") -> Message= " (.getText msg))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

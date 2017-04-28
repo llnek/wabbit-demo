@@ -11,38 +11,32 @@
 
   czlab.wabbit.demo.http.websock
 
-  (:require [czlab.basal.process :refer [delayExec]]
-            [czlab.basal.logging :as log]
+  (:require [czlab.basal.logging :as log]
             [czlab.basal.meta :refer [instBytes?]])
 
-  (:use [czlab.flux.wflow.core]
+  (:use [czlab.wabbit.xpis]
         [czlab.basal.core]
         [czlab.basal.str])
 
-  (:import [czlab.flux.wflow Job Activity]
-           [czlab.wabbit.plugs.io WsockMsg]
-           [czlab.jasal XData]
-           [czlab.wabbit.sys Execvisor]))
+  (:import [czlab.jasal XData]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demo "" []
-  #(do->nil
-     (let [^WsockMsg ev (.origin ^Job %)
-           data (.body ev)
-           stuff (when (and (some? data)
-                            (.hasContent data))
-                   (.content data))]
-       (cond
-         (instance? String stuff)
-         (println "Got poked by websocket-text: " stuff)
-         (instBytes? stuff)
-         (println "Got poked by websocket-bin: len = " (alength ^bytes stuff))
-         :else
-         (println "Funky data from websocket????")))))
+(defn demo "" [evt]
+  (do-with
+    [ch (:socket evt)]
+    (let [data (:body evt)
+          stuff (some-> ^XData data .content)]
+      (cond
+        (string? stuff)
+        (println "Got poked by websocket-text: " stuff)
+        (instBytes? stuff)
+        (println "Got poked by websocket-bin: len = " (alength ^bytes stuff))
+        :else
+        (println "Funky data from websocket????")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

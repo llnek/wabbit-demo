@@ -13,12 +13,10 @@
 
   (:require [czlab.basal.logging :as log])
 
-  (:use [czlab.flux.wflow.core]
+  (:use [czlab.wabbit.xpis]
+        [czlab.flux.wflow]
         [czlab.basal.core]
-        [czlab.basal.str])
-
-  (:import [czlab.wabbit.sys Execvisor]
-           [czlab.flux.wflow Job Activity Workstream]))
+        [czlab.basal.str]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -52,28 +50,27 @@
 (def ^:private a2
   (group<>
     #(do->nil
-       (let [^Job job %]
+       (let [job %]
          (println "*Child*: will create my own child (blocking)")
-         (.setv job :rhs 60)
-         (.setv job :lhs 5)))
+         (alter-atomic job assoc :rhs 60 :lhs 5)))
     (fork<>
       :and
       #(do->nil
-         (let [^Job job %]
+         (let [job %]
            (println "*Child->child*: taking some time to do "
                     "this task... ( ~ 6secs)")
            (dotimes [n 7]
              (Thread/sleep 1000) (print "."))
            (println "")
            (println "*Child->child*: returning result back to *Child*.")
-           (.setv job :result (* (.getv job :rhs)
-                                 (.getv job :lhs)))
+           (alter-atomic job assoc :result (* (:rhs @job)
+                                              (:lhs @job)))
            (println "*Child->child*: done."))))
     #(do->nil
-       (let [^Job job %]
+       (let [job %]
          (println "*Child*: the result for (5 * 60) according to "
                   "my own child is = "
-                  (.getv job :result))
+                  (:result @job))
          (println "*Child*: done.")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,8 +88,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demo
-  "Split but no wait, parent continues" []
-  (workstream<> (group<> a1 (fork<> :nil a2) a3)))
+  "Split but no wait, parent continues" [evt]
+  (let [p (get-pluglet evt)
+        s (get-server p)
+        c (get-scheduler s)
+        w (workstream<>
+            (group<> a1
+                     (fork<> :nil a2) a3))
+        j (job<> c w evt)]
+    (exec-with w j)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

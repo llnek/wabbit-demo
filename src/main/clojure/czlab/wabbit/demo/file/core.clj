@@ -14,16 +14,12 @@
   (:require [czlab.basal.logging :as log]
             [clojure.java.io :as io])
 
-  (:use [czlab.basal.core]
-        [czlab.basal.str]
+  (:use [czlab.wabbit.xpis]
+        [czlab.basal.core]
         [czlab.basal.io]
-        [czlab.flux.wflow.core])
+        [czlab.basal.str])
 
   (:import [java.util.concurrent.atomic AtomicInteger]
-           [czlab.wabbit.ctl Pluglet PlugMsg]
-           [czlab.wabbit.sys Execvisor]
-           [czlab.flux.wflow Job]
-           [czlab.wabbit.plugs.io TimerMsg FileMsg]
            [java.util Date]
            [java.io File IOException]))
 
@@ -40,23 +36,20 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demoGen "" []
-  #(let [^TimerMsg msg (.origin ^Job %)
-         ^Pluglet
-         p (-> ^Execvisor
-               (.. msg source server)
-               (.child :default-sample))]
-     (-> (:targetFolder (.config p))
-         (io/file (str "ts-" (ncount) ".txt"))
-         (spitUtf8 (str "Current time is " (Date.))))))
+(defn demoGen "" [evt]
+  (let [plug (get-pluglet evt)
+        svr (get-server plug)
+        c (get-child svr :default-sample)]
+    (-> (:targetFolder (:conf @plug))
+        (io/file (str "ts-" (ncount) ".txt"))
+        (spitUtf8 (str "Current time is " (Date.))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn demoPick "" []
-  #(let [^FileMsg msg (.origin ^Job %)
-         f (.file msg)]
-     (println "picked up new file: " f)
-     (println "content: " (slurpUtf8 f))))
+(defn demoPick "" [evt]
+  (let [f (:file evt)]
+    (println "picked up new file: " f)
+    (println "content: " (slurpUtf8 f))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

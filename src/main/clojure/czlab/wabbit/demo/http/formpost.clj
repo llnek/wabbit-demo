@@ -12,15 +12,15 @@
 
   czlab.wabbit.demo.http.formpost
 
-  (:require [czlab.basal.logging :as log])
-
-  (:use [czlab.wabbit.xpis]
-        [czlab.convoy.upload]
-        [czlab.convoy.core]
-        [czlab.basal.core]
-        [czlab.basal.str])
+  (:require [czlab.basal.log :as log]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.convoy.upload :as cu]
+            [czlab.convoy.core :as cc]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s])
 
   (:import [org.apache.commons.fileupload FileItem]
+           [czlab.convoy.upload ULFormItems]
            [java.io File]
            [czlab.jasal XData]))
 
@@ -30,24 +30,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demo "" [evt res]
-  (do-with
+  (c/do-with
     [ch (:socket evt)]
     (let [data (:body evt)
           stuff (some-> ^XData data .content)]
-      (if (satisfies? ULFormItems stuff)
-        (doseq [^FileItem fi (get-all-items stuff)]
+      (if (c/ist? ULFormItems stuff)
+        (doseq [^FileItem fi (cu/get-all-items stuff)]
           (println "Fieldname : " (.getFieldName fi))
           (println "Name : " (.getName fi))
           (println "Formfield : " (.isFormField fi))
           (if (.isFormField fi)
             (println "Field value: " (.getString fi))
-            (if-some [xs (get-field-file fi)]
+            (if-some [xs (cu/get-field-file fi)]
               (println "Field file = "
                        (.getCanonicalPath xs)))))
          (println "Error: data is not ULFormItems."))
       ;; associate this result with the orignal event
       ;; this will trigger the http response
-      (reply-result ch res))))
+      (cc/reply-result res))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

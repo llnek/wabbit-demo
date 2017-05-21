@@ -11,11 +11,10 @@
 
   czlab.wabbit.demo.tcpip.core
 
-  (:require [czlab.basal.logging :as log])
-
-  (:use [czlab.wabbit.xpis]
-        [czlab.basal.core]
-        [czlab.basal.str])
+  (:require [czlab.basal.log :as log]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s])
 
   (:import [java.io DataOutputStream DataInputStream BufferedInputStream]
            [java.net Socket]
@@ -31,9 +30,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demoClient "" [evt]
-  (let [plug (get-pluglet evt)
-        svr (get-server plug)
-        tcp (get-child svr :default-sample)
+  (let [plug (xp/get-pluglet evt)
+        svr (xp/get-server plug)
+        tcp (xp/get-child svr :default-sample)
         s (.replace text-msg "${TS}" (str (Date.)))
         {:keys [host port]}
         (:conf @tcp)

@@ -11,10 +11,10 @@
 
   czlab.wabbit.demo.flows.core
 
-  (:use [czlab.wabbit.xpis]
-        [czlab.flux.wflow]
-        [czlab.basal.core]
-        [czlab.basal.str]))
+  (:require [czlab.wabbit.xpis :as xp]
+            [czlab.flux.wflow :as wf]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -31,10 +31,10 @@
 ;;
 (defn- perfAuthMtd "" [t]
   (case t
-    "facebook" #(do->nil % (println "-> use facebook"))
-    "google+" #(do->nil % (println "-> use google+"))
-    "openid" #(do->nil % (println "-> use open-id"))
-    #(do->nil % (println "-> use internal db"))))
+    "facebook" #(c/do->nil % (println "-> use facebook"))
+    "google+" #(c/do->nil % (println "-> use google+"))
+    "openid" #(c/do->nil % (println "-> use open-id"))
+    #(c/do->nil % (println "-> use internal db"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;step1. choose a method to authenticate the user
@@ -44,7 +44,7 @@
   ;; could check some data from the job,
   ;; such as URI/Query params
   ;; and decide on which value to switch on
-  (choice<>
+  (wf/choice<>
     #(let [_ %]
        (println "step(1): choose an auth-method") "facebook")
     (perfAuthMtd "db")
@@ -55,20 +55,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;step2
 (def ^:private GetProfile
-  #(do->nil % (println "step(2): get user profile\n" "->user is superuser")))
+  #(c/do->nil % (println "step(2): get user profile\n" "->user is superuser")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;step3 we are going to dummy up a retry of 2 times to simulate network/operation
 ;;issues encountered with EC2 while trying to grant permission
 ;;so here , we are using a wloop to do that
 (def ^:private provAmi
-  (wloop<>
+  (wf/wloop<>
     #(let [job %
            v (:ami_count @job)
            c (if (some? v) (inc v) 0)]
-       (alter-atomic job assoc :ami_count c)
+       (c/alter-atomic job assoc :ami_count c)
        (< c 3))
-    #(do->nil
+    #(c/do->nil
        (let [job %
              v (:ami_count @job)
              c (if (some? v) v 0)]
@@ -83,13 +83,13 @@
 ;;issues encountered with EC2 while trying to grant volume permission
 ;;so here , we are using a wloop to do that
 (def ^:private provVol
-  (wloop<>
+  (wf/wloop<>
     #(let [job %
            v (:vol_count @job)
            c (if (some? v) (inc v) 0)]
-       (alter-atomic job assoc :vol_count c)
+       (c/alter-atomic job assoc :vol_count c)
        (< c 3))
-    #(do->nil
+    #(c/do->nil
        (let [job %
              v (:vol_count @job)
              c (if (some? v) v 0)]
@@ -104,13 +104,13 @@
 ;;where the db write fails a couple of times
 ;;so again , we are using a wloop to do that
 (def ^:private saveSdb
-  (wloop<>
+  (wf/wloop<>
     #(let [job %
            v (:wdb_count @job)
            c (if (some? v) (inc v) 0)]
-          (alter-atomic job assoc :wdb_count c)
+          (c/alter-atomic job assoc :wdb_count c)
           (< c 3))
-    #(do->nil
+    #(c/do->nil
        (let [job %
              v (:wdb_count @job)
              c (if (some? v) v 0)]
@@ -125,13 +125,13 @@
 ;;we don't want to continue until both provisioning tasks are done. we use a AndJoin to hold/freeze
 ;;the workflow
 (def ^:private Provision
-  (group<> (fork<> :and provAmi provVol) saveSdb))
+  (wf/group<> (wf/fork<> :and provAmi provVol) saveSdb))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; this is the final step, after all the work are done, reply back to the caller.
 ;; like, returning a 200-OK
 (def ^:private ReplyUser
-  #(do->nil
+  #(c/do->nil
      (let [job %]
        (println "step(5): we'd probably return a 200 OK "
                 "back to caller here"))))
@@ -139,29 +139,28 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (def ^:private ErrorUser
-  #(do->nil
+  #(c/do->nil
      (let [job %]
        (println "step(5): we'd probably return a 200 OK "
                 "but with errors"))))
 
 ;; do a final test to see what sort of response should we send back to the user.
 (def ^:private FinalTest
-  (decision<> #(do->true %) ReplyUser ErrorUser))
+  (wf/decision<> #(c/do->true %) ReplyUser ErrorUser))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demo "" [evt]
   ;; this workflow is a small (4 step) workflow, with the 3rd step (Provision) being
   ;; a split, which forks off more steps in parallel.
-  (let [p (get-pluglet evt)
-        s (get-server p)
-        c (get-scheduler s)
-        w (workstream<>
-            (group<> (authUser)
-                     GetProfile
-                     Provision FinalTest))
-        j (job<> c w evt)]
-    (exec-with w j)))
+  (let [p (xp/get-pluglet evt)
+        s (xp/get-server p)
+        c (xp/get-scheduler s)
+        w (wf/workstream<>
+            (wf/group<> (authUser)
+                        GetProfile Provision FinalTest))
+        j (wf/job<> c w evt)]
+    (wf/exec-with w j)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

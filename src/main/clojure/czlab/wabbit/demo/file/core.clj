@@ -11,13 +11,12 @@
 
   czlab.wabbit.demo.file.core
 
-  (:require [czlab.basal.logging :as log]
-            [clojure.java.io :as io])
-
-  (:use [czlab.wabbit.xpis]
-        [czlab.basal.core]
-        [czlab.basal.io]
-        [czlab.basal.str])
+  (:require [czlab.basal.log :as log]
+            [clojure.java.io :as io]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.basal.core :as c]
+            [czlab.basal.io :as i]
+            [czlab.basal.str :as s])
 
   (:import [java.util.concurrent.atomic AtomicInteger]
            [java.util Date]
@@ -37,19 +36,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demoGen "" [evt]
-  (let [plug (get-pluglet evt)
-        svr (get-server plug)
-        c (get-child svr :default-sample)]
+  (let [plug (xp/get-pluglet evt)
+        svr (xp/get-server plug)
+        c (xp/get-child svr :default-sample)]
     (-> (:targetFolder (:conf @plug))
         (io/file (str "ts-" (ncount) ".txt"))
-        (spitUtf8 (str "Current time is " (Date.))))))
+        (i/spitUtf8 (str "Current time is " (Date.))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demoPick "" [evt]
   (let [f (:file evt)]
     (println "picked up new file: " f)
-    (println "content: " (slurpUtf8 f))))
+    (println "content: " (i/slurpUtf8 f))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

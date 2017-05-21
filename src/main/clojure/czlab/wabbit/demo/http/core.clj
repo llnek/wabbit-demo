@@ -11,12 +11,11 @@
 
   czlab.wabbit.demo.http.core
 
-  (:require [czlab.basal.logging :as log])
-
-  (:use [czlab.wabbit.xpis]
-        [czlab.convoy.core]
-        [czlab.basal.core]
-        [czlab.basal.str]))
+  (:require [czlab.basal.log :as log]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.convoy.core :as cc]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -36,11 +35,11 @@
 (defn demo "" [evt res]
   ;; construct a simple html page back to caller
   ;; by wrapping it into a stream data object
-  (do-with
+  (c/do-with
     [ch (:socket evt)]
-    (->> (-> (set-res-header ch res "content-type" "text/xml")
+    (->> (-> (cc/set-res-header res "content-type" "text/xml")
              (assoc :body fx-str))
-         (reply-result ch ))))
+         cc/reply-result )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

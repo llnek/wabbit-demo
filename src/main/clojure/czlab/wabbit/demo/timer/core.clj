@@ -11,11 +11,10 @@
 
   czlab.wabbit.demo.timer.core
 
-  (:require [czlab.basal.logging :as log])
-
-  (:use [czlab.wabbit.xpis]
-        [czlab.basal.core]
-        [czlab.basal.str])
+  (:require [czlab.basal.log :as log]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s])
 
   (:import [java.util.concurrent.atomic AtomicInteger]
            [java.util Date]))
@@ -34,7 +33,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demo "" [evt]
-  (let [plug (get-pluglet evt)
+  (let [plug (xp/get-pluglet evt)
         {:keys [repeat?]}
         (:conf @plug)]
     (if repeat?

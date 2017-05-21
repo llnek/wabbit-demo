@@ -8,7 +8,7 @@
 
 (ns czlab.test.wabbit.demo.test
 
-  (:require [czlab.basal.logging :as log]
+  (:require [czlab.basal.log :as log]
             [clojure.string :as cs]
             [clojure.java.io :as io])
 

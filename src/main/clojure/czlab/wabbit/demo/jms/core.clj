@@ -11,11 +11,10 @@
 
   czlab.wabbit.demo.jms.core
 
-  (:require [czlab.basal.logging :as log])
-
-  (:use [czlab.wabbit.xpis]
-        [czlab.basal.core]
-        [czlab.basal.str])
+  (:require [czlab.basal.log :as log]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s])
 
   (:import [java.util.concurrent.atomic AtomicInteger]
            [javax.jms TextMessage]))

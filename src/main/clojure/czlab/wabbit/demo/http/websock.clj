@@ -11,12 +11,11 @@
 
   czlab.wabbit.demo.http.websock
 
-  (:require [czlab.basal.logging :as log]
-            [czlab.basal.meta :refer [instBytes?]])
-
-  (:use [czlab.wabbit.xpis]
-        [czlab.basal.core]
-        [czlab.basal.str])
+  (:require [czlab.basal.meta :as m :refer [instBytes?]]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.basal.log :as log]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s])
 
   (:import [czlab.jasal XData]))
 
@@ -26,14 +25,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn demo "" [evt]
-  (do-with
+  (c/do-with
     [ch (:socket evt)]
     (let [data (:body evt)
           stuff (some-> ^XData data .content)]
       (cond
         (string? stuff)
         (println "Got poked by websocket-text: " stuff)
-        (instBytes? stuff)
+        (m/instBytes? stuff)
         (println "Got poked by websocket-bin: len = " (alength ^bytes stuff))
         :else
         (println "Funky data from websocket????")))))

@@ -11,11 +11,10 @@
 
   czlab.wabbit.demo.pop3.core
 
-  (:require [czlab.basal.logging :as log])
-
-  (:use [czlab.wabbit.xpis]
-        [czlab.basal.core]
-        [czlab.basal.str])
+  (:require [czlab.basal.log :as log]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s])
 
   (:import [javax.mail Message Message$RecipientType Multipart]
            [java.util.concurrent.atomic AtomicInteger]

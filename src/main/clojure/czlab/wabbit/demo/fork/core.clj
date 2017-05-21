@@ -11,12 +11,11 @@
 
   czlab.wabbit.demo.fork.core
 
-  (:require [czlab.basal.logging :as log])
-
-  (:use [czlab.wabbit.xpis]
-        [czlab.flux.wflow]
-        [czlab.basal.core]
-        [czlab.basal.str]))
+  (:require [czlab.basal.log :as log]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.flux.wflow :as w]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;(set! *warn-on-reflection* true)
@@ -39,7 +38,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (def ^:private a1
-  #(do->nil
+  #(c/do->nil
      (let [job %]
        (println "I am the *Parent*")
        (println "I am programmed to fork off a parallel child process, "
@@ -48,14 +47,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (def ^:private a2
-  (group<>
-    #(do->nil
+  (w/group<>
+    #(c/do->nil
        (let [job %]
          (println "*Child*: will create my own child (blocking)")
-         (alter-atomic job assoc :rhs 60 :lhs 5)))
-    (fork<>
+         (c/alter-atomic job assoc :rhs 60 :lhs 5)))
+    (w/fork<>
       :and
-      #(do->nil
+      #(c/do->nil
          (let [job %]
            (println "*Child->child*: taking some time to do "
                     "this task... ( ~ 6secs)")
@@ -63,10 +62,10 @@
              (Thread/sleep 1000) (print "."))
            (println "")
            (println "*Child->child*: returning result back to *Child*.")
-           (alter-atomic job assoc :result (* (:rhs @job)
-                                              (:lhs @job)))
+           (c/alter-atomic job assoc :result (* (:rhs @job)
+                                                (:lhs @job)))
            (println "*Child->child*: done."))))
-    #(do->nil
+    #(c/do->nil
        (let [job %]
          (println "*Child*: the result for (5 * 60) according to "
                   "my own child is = "
@@ -76,9 +75,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (def ^:private a3
-  #(do->nil
+  #(c/do->nil
      (let [_ %
-           b (strbf<> "*Parent*: ")]
+           b (s/strbf<> "*Parent*: ")]
        (println "*Parent*: after fork, continue to calculate fib(6)...")
        (dotimes [n 7]
          (when (> n 0)
@@ -89,14 +88,14 @@
 ;;
 (defn demo
   "Split but no wait, parent continues" [evt]
-  (let [p (get-pluglet evt)
-        s (get-server p)
-        c (get-scheduler s)
-        w (workstream<>
-            (group<> a1
-                     (fork<> :nil a2) a3))
-        j (job<> c w evt)]
-    (exec-with w j)))
+  (let [p (xp/get-pluglet evt)
+        s (xp/get-server p)
+        c (xp/get-scheduler s)
+        w (w/workstream<>
+            (w/group<> a1
+                       (w/fork<> :nil a2) a3))
+        j (w/job<> c w evt)]
+    (w/exec-with w j)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF

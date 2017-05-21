@@ -11,14 +11,13 @@
 
   czlab.wabbit.demo.mvc.core
 
-  (:require [czlab.basal.logging :as log])
-
-  (:use [czlab.wabbit.plugs.mvc]
-        [czlab.wabbit.xpis]
-        [czlab.wabbit.base]
-        [czlab.convoy.core]
-        [czlab.basal.core]
-        [czlab.basal.str]))
+  (:require [czlab.wabbit.plugs.mvc :as mvc]
+            [czlab.basal.log :as log]
+            [czlab.wabbit.xpis :as xp]
+            [czlab.wabbit.base :as b]
+            [czlab.convoy.core :as cc]
+            [czlab.basal.core :as c]
+            [czlab.basal.str :as s]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -36,17 +35,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn handler "" [evt res]
-  (do-with
+  (c/do-with
     [ch (:socket evt)]
     (let [ri (get-in evt [:route :info])
           tpl (:template ri)
-          plug (get-pluglet evt)
-          co (get-server plug)
+          plug (xp/get-pluglet evt)
+          co (xp/get-server plug)
           {:keys [data ctype]}
-          (loadTemplate co tpl (ftlContext))]
-      (->> (-> (set-res-header ch res "content-type" ctype)
+          (mvc/loadTemplate co tpl (ftlContext))]
+      (->> (-> (cc/set-res-header res "content-type" ctype)
                (assoc :body data))
-           (reply-result ch )))))
+           cc/reply-result ))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

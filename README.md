@@ -15,7 +15,7 @@ Add the following dependency to your `project.clj` file:
 
 ## Usage
 
-Just import and use.
+Import and use.
 
 ## Contacting me / contributions
 
